@@ -56,7 +56,7 @@ myProj.parse(function (err) {
                 try{
                     let testFile = fs.readFileSync(path, 'utf-8');
                     testFile.split(/\r?\n/).forEach((line) => {
-                        if (line.includes('class')) {
+                        if (line.includes(': BaseUITestCase {')) {
                             let searchStr = 'class';
                             let classIdx = line.indexOf(searchStr)
                             let endIdx = line.indexOf(':')
@@ -259,7 +259,7 @@ function addTestPlans(main_group_uuid, shards){
             });
             
             log('Writing Test Plan to file');
-            fs.writeFileSync(shardName, createTestPlan(defaultOptions, [mainTarget].concat(shardTargets).concat(allDisabledShards)));
+            fs.writeFileSync(XCODE_PATH+shardName, createTestPlan(defaultOptions, [mainTarget].concat(shardTargets).concat(allDisabledShards)));
 
             console.log('Test Plan Shard '+shardIndex+' Created:', shardName);
         })
