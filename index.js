@@ -92,7 +92,7 @@ myProj.parse(function (err) {
 
     // Specify number of tests for test plans
     log('Total number of tests: ', totalNumberOfTests);
-    const fixedNumberOfTestsForFirstPlan = 30;
+    const fixedNumberOfTestsForFirstPlan = Math.round(totalNumberOfTests / 5);
     const numberOfTestsForOtherPlans = Math.round((totalNumberOfTests - fixedNumberOfTestsForFirstPlan) / (SHARDS - 1));
     var excess = [];
 
