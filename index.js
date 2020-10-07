@@ -137,10 +137,13 @@ myProj.parse(function (err) {
 
         // Add the rest excess part to the final one in case there is any
         if (index == SHARDS - 1) {
-            shardTarget = [...excess, ...shardTarget];
+            excess.forEach((item, index) => {
+                shardTarget.push(excess.shift());
+            })
         }
     })
 
+    log('excess: ', excess);
     log('classNameShards: ', classNameShards);
 
     // Debug info
