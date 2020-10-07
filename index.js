@@ -41,11 +41,14 @@ myProj.parse(function (err) {
     const target_uuid = target.value;
 
     const tests = getRecursiveTests(myProj, target_uuid, []);
-    log('Tests Found in Target:',tests.length);
+    log('UITests files found in Target:',tests.length);
     
     const shard_size = Math.ceil(tests.length / SHARDS);
+    log('Number of UITests files for each shard:',shard_size);
+    
     const shards = shard(tests, shard_size);
-    log('Shards: ', shards.length)
+    log('UITests files for each shard: ', shards)
+    
     let classNameShards = [];
     if(TEST_PATH != '') {
         let files = walkSync(TEST_PATH, []);
@@ -509,7 +512,7 @@ function getRecursiveTests(myProj, target_uuid, tests = []){
     // log('Checking=====:', target_uuid)
     if(target && target.children && target.children.length > 0){
         target.children.forEach((test) => {
-            if(test && test.comment && (test.comment.indexOf('.swift') != -1 || test.comment.indexOf('.m') != -1)){
+            if(test && test.comment && (test.comment.indexOf('UITests.swift') != -1)){
                 tests.push(test);
             } else {
                 return getRecursiveTests(myProj, test.value, tests)
