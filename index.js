@@ -90,16 +90,20 @@ myProj.parse(function (err) {
         })
     }
 
-    // Make them even
-    const acceptableMinimumTests = Math.round((totalNumberOfTests / SHARDS) - 3);
-    const acceptableMaximumTests = Math.round((totalNumberOfTests / SHARDS) + 3);
+    // Specify number of tests for test plans
     log('Total number of tests: ', totalNumberOfTests);
-    log("acceptableMinumumTests: " ,acceptableMinimumTests);
-    log("acceptableMaximumTests: " ,acceptableMaximumTests);
+    const fixedNumberOfTestsForFirstPlan = 30;
+    const numberOfTestsForOtherPlans = Math.round((totalNumberOfTests - fixedNumberOfTestsForFirstPlan) / (SHARDS - 1));
     var excess = [];
 
     // Remove excess part if shardTarget > acceptableMaximumTests
     classNameShards.forEach((shardTarget, index) => { 
+        const numberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
+        const acceptableMinimumTests = numberOfTests - 3;
+        const acceptableMaximumTests = numberOfTests + 3;
+        log("acceptableMinumumTests for index " + index + " : "  ,acceptableMinimumTests);
+        log("acceptableMaximumTests for index " + index + " : "  ,acceptableMaximumTests);
+        
         shardTarget.sort((a, b) => a.numberOfTests - b.numberOfTests);
         var nothingToRemove = false;
         while (((shardTarget.reduce(function (acc, obj) { return acc + obj.numberOfTests; }, 0)) > acceptableMaximumTests) && nothingToRemove == false) {
@@ -116,6 +120,10 @@ myProj.parse(function (err) {
 
     // Add excess part if shardTarget < acceptableMinimumTests
     classNameShards.forEach((shardTarget, index) => { 
+        const numberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
+        const acceptableMinimumTests = numberOfTests - 3;
+        const acceptableMaximumTests = numberOfTests + 3;
+        
         excess.sort((a, b) => a.numberOfTests - b.numberOfTests);
         var nothingToAdd = false;
         while (((shardTarget.reduce(function (acc, obj) { return acc + obj.numberOfTests; }, 0)) < acceptableMinimumTests) && excess.length > 0 && nothingToAdd == false) {
