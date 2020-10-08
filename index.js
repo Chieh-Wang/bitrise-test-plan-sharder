@@ -98,9 +98,9 @@ myProj.parse(function (err) {
 
     // Remove excess part if shardTarget > acceptableMaximumTests
     classNameShards.forEach((shardTarget, index) => { 
-        const numberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
-        const acceptableMinimumTests = numberOfTests - 3;
-        const acceptableMaximumTests = numberOfTests + 3;
+        const acceptableNumberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
+        const acceptableMinimumTests = acceptableNumberOfTests - 3;
+        const acceptableMaximumTests = acceptableNumberOfTests + 3;
         log("acceptableMinumumTests for index " + index + " : "  ,acceptableMinimumTests);
         log("acceptableMaximumTests for index " + index + " : "  ,acceptableMaximumTests);
         
@@ -120,9 +120,9 @@ myProj.parse(function (err) {
 
     // Add excess part if shardTarget < acceptableMinimumTests
     classNameShards.forEach((shardTarget, index) => { 
-        const numberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
-        const acceptableMinimumTests = numberOfTests - 3;
-        const acceptableMaximumTests = numberOfTests + 3;
+        const acceptableNumberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
+        const acceptableMinimumTests = acceptableNumberOfTests - 3;
+        const acceptableMaximumTests = acceptableNumberOfTests + 3;
         
         excess.sort((a, b) => a.numberOfTests - b.numberOfTests);
         var nothingToAdd = false;
