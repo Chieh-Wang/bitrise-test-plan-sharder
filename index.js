@@ -92,12 +92,19 @@ myProj.parse(function (err) {
 
     // Specify number of tests for test plans
     log('Total number of tests: ', totalNumberOfTests);
-    const percentageForFirstPlan = SHARDS == 1 ? 100 : 60 / SHARDS;
+    const percentageForFirstPlan = SHARDS == 1 ? 100 : ( SHARDS == 2 ? 30 : 10 );
     const fixedNumberOfTestsForFirstPlan = Math.round(totalNumberOfTests / 100 * percentageForFirstPlan);
     const numberOfTestsForOtherPlans = Math.round((totalNumberOfTests - fixedNumberOfTestsForFirstPlan) / (SHARDS - 1));
-    var excess = [];
+    var allTestClasses = [];
 
-    // Remove excess part if shardTarget > acceptableMaximumTests
+    // Clear out all classes for later redistribution
+    classNameShards.forEach((shardTarget, index) => { 
+        while (shardTarget.length > 0) {
+            allTestClasses.push(shardTarget.shift());
+        }
+    })
+
+    // Add classes if shardTarget < acceptableMinimumTests
     classNameShards.forEach((shardTarget, index) => { 
         const acceptableNumberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
         const acceptableMinimumTests = acceptableNumberOfTests - 3;
@@ -105,46 +112,22 @@ myProj.parse(function (err) {
         log("acceptableMinumumTests for index " + index + " : "  ,acceptableMinimumTests);
         log("acceptableMaximumTests for index " + index + " : "  ,acceptableMaximumTests);
         
-        shardTarget.sort((a, b) => a.numberOfTests - b.numberOfTests);
-        var nothingToRemove = false;
-        while (((shardTarget.reduce(function (acc, obj) { return acc + obj.numberOfTests; }, 0)) > acceptableMaximumTests) && nothingToRemove == false) {
+        for (var i = allTestClasses.length - 1; i >= 0; i--) {
             const numberOfTests = shardTarget.reduce(function (acc, obj) { return acc + obj.numberOfTests; }, 0);
-            if ((numberOfTests - shardTarget[0].numberOfTests) >= acceptableMinimumTests) {
-                excess.push(shardTarget.shift());
-            } else {
-                nothingToRemove = true;
-            }
-        }
-    })
-
-    log('excess: ', excess);
-
-    // Add excess part if shardTarget < acceptableMinimumTests
-    classNameShards.forEach((shardTarget, index) => { 
-        const acceptableNumberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
-        const acceptableMinimumTests = acceptableNumberOfTests - 3;
-        const acceptableMaximumTests = acceptableNumberOfTests + 3;
-        
-        excess.sort((a, b) => a.numberOfTests - b.numberOfTests);
-        var nothingToAdd = false;
-        while (((shardTarget.reduce(function (acc, obj) { return acc + obj.numberOfTests; }, 0)) < acceptableMinimumTests) && excess.length > 0 && nothingToAdd == false) {
-            const numberOfTests = shardTarget.reduce(function (acc, obj) { return acc + obj.numberOfTests; }, 0);
-            if ((numberOfTests + excess[0].numberOfTests) <= acceptableMaximumTests) {
-                shardTarget.push(excess.shift());
-            } else {
-                nothingToAdd = true;
+            if ((numberOfTests + allTestClasses[i].numberOfTests) <= acceptableMaximumTests) { 
+                const removeItemArray = allTestClasses.splice(i, 1);
+                shardTarget.push(removeItemArray[0]);
             }
         }
 
         // Add the rest excess part to the final one in case there is any
         if (index == SHARDS - 1) {
-            excess.forEach((item, index) => {
-                shardTarget.push(excess.shift());
+            allTestClasses.forEach((item, index) => {
+                shardTarget.push(allTestClasses.shift());
             })
         }
     })
 
-    log('excess: ', excess);
     log('classNameShards: ', classNameShards);
 
     // Debug info
