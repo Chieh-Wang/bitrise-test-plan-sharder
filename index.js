@@ -92,7 +92,7 @@ myProj.parse(function (err) {
 
     // Specify number of tests for test plans
     log('Total number of tests: ', totalNumberOfTests);
-    const percentageForFirstPlan = SHARDS == 1 ? 100 : ( SHARDS == 2 ? 30 : 10 );
+    const percentageForFirstPlan = SHARDS == 1 ? 100 : ( SHARDS == 2 ? 30 : 15 );
     const fixedNumberOfTestsForFirstPlan = Math.round(totalNumberOfTests / 100 * percentageForFirstPlan);
     const numberOfTestsForOtherPlans = Math.round((totalNumberOfTests - fixedNumberOfTestsForFirstPlan) / (SHARDS - 1));
     var allTestClasses = [];
@@ -107,14 +107,11 @@ myProj.parse(function (err) {
     // Add classes if shardTarget < acceptableMinimumTests
     classNameShards.forEach((shardTarget, index) => { 
         const acceptableNumberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
-        const acceptableMinimumTests = acceptableNumberOfTests - 3;
-        const acceptableMaximumTests = acceptableNumberOfTests + 3;
-        log("acceptableMinumumTests for index " + index + " : "  ,acceptableMinimumTests);
-        log("acceptableMaximumTests for index " + index + " : "  ,acceptableMaximumTests);
+        log("acceptableNumberOfTests for index " + index + " : "  ,acceptableNumberOfTests);
         
         for (var i = allTestClasses.length - 1; i >= 0; i--) {
             const numberOfTests = shardTarget.reduce(function (acc, obj) { return acc + obj.numberOfTests; }, 0);
-            if ((numberOfTests + allTestClasses[i].numberOfTests) <= acceptableMaximumTests) { 
+            if ((numberOfTests + allTestClasses[i].numberOfTests) <= acceptableNumberOfTests) { 
                 const removeItemArray = allTestClasses.splice(i, 1);
                 shardTarget.push(removeItemArray[0]);
             }
