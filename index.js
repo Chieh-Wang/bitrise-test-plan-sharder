@@ -104,6 +104,9 @@ myProj.parse(function (err) {
         }
     })
 
+    // Sort the array to biggest the last so biggest one will be added first for better distribution
+    allTestClasses.sort((a, b) => a.numberOfTests - b.numberOfTests);
+
     // Add classes if shardTarget < acceptableMinimumTests
     classNameShards.forEach((shardTarget, index) => { 
         const acceptableNumberOfTests = (index == 0 ? fixedNumberOfTestsForFirstPlan : numberOfTestsForOtherPlans);
