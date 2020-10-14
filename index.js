@@ -2,8 +2,6 @@
 const XCODE_PATH = process.env.path_to_xcode + '/';
 const XCODE_PROJECT = process.env.xcode_project;
 const SHARDS = process.env.shards;
-const PERCENTAGE_FOR_FIRST_PLAN_2_SHARDS = process.env.percentage_for_first_plan_2_shards;
-const PERCENTAGE_FOR_FIRST_PLAN_3_OR_MORE_SHARDS = process.env.percentage_for_first_plan_3_or_more_shards;
 const TEST_PLAN = process.env.test_plan;
 const TARGET = process.env.target;
 const TEST_PATH = process.env.test_path;
@@ -94,7 +92,7 @@ myProj.parse(function (err) {
 
     // Specify number of tests for test plans
     log('Total number of tests: ', totalNumberOfTests);
-    const percentageForFirstPlan = SHARDS == 1 ? 100 : ( SHARDS == 2 ? PERCENTAGE_FOR_FIRST_PLAN_2_SHARDS : PERCENTAGE_FOR_FIRST_PLAN_3_OR_MORE_SHARDS );
+    const percentageForFirstPlan = SHARDS == 1 ? 100 : ( SHARDS == 2 ? 30 : 12 );
     const fixedNumberOfTestsForFirstPlan = Math.round(totalNumberOfTests / 100 * percentageForFirstPlan);
     const numberOfTestsForOtherPlans = Math.round((totalNumberOfTests - fixedNumberOfTestsForFirstPlan) / (SHARDS - 1));
     var allTestClasses = [];
