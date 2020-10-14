@@ -145,6 +145,20 @@ inputs:
       description: This will create Test Plans containing equal numbers of test cases
       is_required: true
       is_sensitive: false
+  - percentage_for_first_plan_2_shards:
+    opts:
+      title: Percentage for first plan (2 shards)
+      summary: Specify the amount of UITests for the first test plan in percentage when we shard 2 test plans
+      description: The rest tests will be divided equally by the rest plans. The first test plan will be run by fan_out_tests.
+      is_required: true
+      is_sensitive: false
+  - percentage_for_first_plan_3_or_more_shards:
+    opts:
+      title: Percentage for first plan (3 or more shards)
+      summary: Specify the amount of UITests for the first test plan in percentage when we shard 3 or more test plans
+      description: The rest tests will be divided equally by the rest plans. The first test plan will be run by fan_out_tests.
+      is_required: true
+      is_sensitive: false
   - debug_mode: "false"
     opts: 
       category: Debug
