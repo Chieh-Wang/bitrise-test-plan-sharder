@@ -4,7 +4,7 @@ const XCODE_PROJECT = process.env.xcode_project;
 const SHARDS = process.env.shards;
 const TEST_PLAN = process.env.test_plan;
 const TARGET = process.env.target;
-const TEST_PATH = process.env.test_path;
+const TEST_PATH = process.env.test_path; // Required field
 const SCHEME = process.env.scheme;
 const DEBUG = process.env.debug_mode == 'true' ? true : false;
 
@@ -17,6 +17,9 @@ console.log('SCHEME:', SCHEME)
 console.log('SHARDS:', SHARDS)
 console.log('DEBUG:', DEBUG)
 
+// Properties
+const uitestIdentifier = ': BaseUITestCase {';
+
 // Outputs
 const TEST_PLANS = [];
 
@@ -27,6 +30,8 @@ const xcode = require('xcode'),
     projectPath = XCODE_PATH + XCODE_PROJECT + '/project.pbxproj',
     outputProjectPath = XCODE_PATH + XCODE_PROJECT + '/project.pbxproj',
     myProj = xcode.project(projectPath);
+
+const allFilesInTestPath = walkSync(TEST_PATH, []);
 
 myProj.parse(function (err) {
     if (err) {
@@ -39,9 +44,11 @@ myProj.parse(function (err) {
     log('Target children: ', group.children)
     const target = group.children.find((child) => child.comment == TARGET);
     const target_uuid = target.value;
+    
+    log("All files in " + TEST_PATH, allFilesInTestPath);
 
     const tests = getRecursiveTests(myProj, target_uuid, []);
-    log('UITests files found in Target:', tests.length);
+    log('UITests files:', tests);
 
     const shard_size = Math.round(tests.length / SHARDS);
     log('Expected number of UITests files for each shard:', shard_size);
@@ -52,43 +59,36 @@ myProj.parse(function (err) {
     let classNameShards = [];
     var totalNumberOfTests = 0;
     
-    if (TEST_PATH != '') {
-        let files = walkSync(TEST_PATH, []);
-        shards.forEach((shard, shardIndex) => {
-            classNameShards.push([]);
-            shard.forEach((test, i) => {
-                let path = files.find((file) => file.indexOf(test.comment) != -1);
-                try {
-                    var classInfo = {};
-                    let testFile = fs.readFileSync(path, 'utf-8');
-                    testFile.split(/\r?\n/).forEach((line) => {
-                        if (line.includes(': BaseUITestCase {')) {
-                            let searchStr = 'class';
-                            let classIdx = line.indexOf(searchStr)
-                            let endIdx = line.indexOf(':')
-                            let className = line.substring(classIdx + searchStr.length + 1, endIdx);
-                            classInfo["className"] = className;
-                            classInfo["numberOfTests"] = 0;
-                        }
+    // Parse shards
+    shards.forEach((shard, shardIndex) => {
+        classNameShards.push([]);
+        shard.forEach((test, i) => {
+            try {
+                var classInfo = {};
+                let path = allFilesInTestPath.find((file) => file.indexOf(test.comment) != -1);
+                let testFile = fs.readFileSync(path, 'utf-8');
+                testFile.split(/\r?\n/).forEach((line) => {
+                    if (line.includes(uitestIdentifier)) {
+                        let searchStr = 'class';
+                        let classIdx = line.indexOf(searchStr)
+                        let endIdx = line.indexOf(':')
+                        let className = line.substring(classIdx + searchStr.length + 1, endIdx);
+                        classInfo["className"] = className;
+                        classInfo["numberOfTests"] = 0;
+                    }
 
-                        if (line.includes('func test')) {
-                            classInfo["numberOfTests"] = classInfo["numberOfTests"] + 1;
-                            totalNumberOfTests += 1;
-                        }
-                    });
+                    if (line.includes('func test')) {
+                        classInfo["numberOfTests"] = classInfo["numberOfTests"] + 1;
+                        totalNumberOfTests += 1;
+                    }
+                });
 
-                    classNameShards[shardIndex].push(classInfo);
-                } catch (err) {
-                    log('Error parsing file: ' + path, err);
-                }
-            });
+                classNameShards[shardIndex].push(classInfo);
+            } catch (err) {
+                log('Error parsing file: ' + path, err);
+            }
         });
-    } else {
-        shards.forEach((shard) => {
-            let classNames = shard.map((test) => test.comment.substring(0, test.comment.indexOf('.')));
-            classNameShards.push(classNames);
-        })
-    }
+    });
 
     // Specify number of tests for test plans
     log('Total number of tests: ', totalNumberOfTests);
@@ -179,6 +179,30 @@ myProj.parse(function (err) {
     // TODO Use Envman to save these globally
     process.env.test_plans = quotedAndCommaSeparated;
 });
+
+function isUITestFile(fileName) {
+    var isUITestFile = false;
+    let path = allFilesInTestPath.find((file) => file.indexOf(fileName) != -1);
+    
+    if (path) {
+        let file = fs.readFileSync(path, 'utf-8');
+        
+        // Check file content to make sure it's UITest file
+        if (file.includes(uitestIdentifier)) {
+            if (DEBUG) { log(fileName + ' is a UITest file ✅'); }
+            isUITestFile = true;
+        } else {
+            if (DEBUG) { log(fileName + ' is NOT a UITest file ❌'); }
+            isUITestFile = false;
+        }
+    } else {
+        if (DEBUG) { log(fileName + ' is NOT a UITest file ❌'); }
+        isUITestFile = false;
+    }
+    
+
+    return isUITestFile;
+};
 
 // List all files in a directory in Node.js recursively in a synchronous fashion
 function walkSync(dir, filelist) {
@@ -576,7 +600,7 @@ function getRecursiveTests(myProj, target_uuid, tests = []) {
     // log('Checking=====:', target_uuid)
     if (target && target.children && target.children.length > 0) {
         target.children.forEach((test) => {
-            if (test && test.comment && (test.comment.indexOf('UITests.swift') != -1)) {
+            if (test && test.comment && test.comment.indexOf('.swift') != -1 && isUITestFile(test.comment)) {
                 tests.push(test);
             } else {
                 return getRecursiveTests(myProj, test.value, tests)
