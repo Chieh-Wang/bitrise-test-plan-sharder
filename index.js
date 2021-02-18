@@ -19,6 +19,7 @@ console.log('DEBUG:', DEBUG)
 
 // Properties
 const uitestIdentifier = ': BaseUITestCase {';
+const percentageForFirstPlan = SHARDS == 1 ? 100 : ( SHARDS == 2 ? 30 : 12 );
 
 // Outputs
 const TEST_PLANS = [];
@@ -92,7 +93,6 @@ myProj.parse(function (err) {
 
     // Specify number of tests for test plans
     log('Total number of tests: ', totalNumberOfTests);
-    const percentageForFirstPlan = SHARDS == 1 ? 100 : ( SHARDS == 2 ? 30 : 10 );
     const fixedNumberOfTestsForFirstPlan = Math.round(totalNumberOfTests / 100 * percentageForFirstPlan);
     const numberOfTestsForOtherPlans = Math.round((totalNumberOfTests - fixedNumberOfTestsForFirstPlan) / (SHARDS - 1));
     var allTestClasses = [];
